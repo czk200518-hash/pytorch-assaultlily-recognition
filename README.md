@@ -10,11 +10,11 @@
 │   ├── dataset_loader.py   # 数据集加载
 │   └── predict.py          # 预测模块
 ├── utils/                   # 工具模块
-│   ├── face_detector.py    # 动漫人脸检测
+│   ├── face_detector.py
 │   ├── hardware_detector.py # 硬件检测与优化
 │   ├── cpu_optimizer.py    # CPU优化
 │   └── gpu_optimizer.py    # GPU优化
-├── models/                  # 训练好的模型文件
+├── models/                  # 模型文件
 │   └── 模型/
 ├── gui.py                   # PyQt5图形界面
 ├── main.py                  # 命令行入口
@@ -23,7 +23,6 @@
 ```
 
 ---
-
 ## 二、核心模块技术细节
 ### 2.1 模型架构 (core/model.py)
 #### 2.1.1 自定义CNN模型系列
@@ -38,7 +37,7 @@
 | mobilenet | ~2M | CPU高效 | 深度可分离卷积 |
 
 #### 2.1.2 注意力机制
-实现了两种注意力模块：
+两种注意力模块：
 
 **SEBlock (Squeeze-and-Excitation)**
 - 通过全局信息压缩和激励增强通道间特征表达
@@ -50,7 +49,6 @@
 - 空间注意力: 7x7卷积核
 
 #### 2.1.3 预训练模型支持
-
 支持基于ImageNet预训练的模型：
 - ResNet18/34/50
 - EfficientNet-B0/B1/B2
@@ -217,6 +215,8 @@ def get_gradient_accumulation_steps(batch_size, target_effective_batch=32):
 
 ---
 ## 四、图形界面 (gui.py)
+<img width="2560" height="1411" alt="image" src="https://github.com/user-attachments/assets/b2f08694-c736-4a40-bc47-cb15a226ccc5" />
+
 ### 4.1 技术栈
 - PyQt5: GUI框架
 - matplotlib: 训练曲线可视化
