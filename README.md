@@ -1,11 +1,7 @@
 # 突击莉莉角色识别项目 - 技术总结
-
 ## 一、项目概述
-
 本项目是一个基于深度学习的动漫角色识别系统，专门针对《突击莉莉》(Assault Lily) 系列作品中的角色进行识别。项目包含完整的模型训练、预测推理、人脸检测和模型对比评估功能。
-
 ### 项目结构
-
 ```
 突击莉莉角色识别/
 ├── core/                    # 核心模块
@@ -19,12 +15,7 @@
 │   ├── cpu_optimizer.py    # CPU优化
 │   └── gpu_optimizer.py    # GPU优化
 ├── models/                  # 训练好的模型文件
-│   ├── resnet34/           # ResNet34模型
-│   ├── resnet50/           # ResNet50模型
-│   ├── large/              # Large CNN模型
-│   └── standard/           # Standard CNN模型
-├── 模型比较器/              # 模型对比评估工具
-│   └── model_comparator.py
+│   └── 模型/
 ├── gui.py                   # PyQt5图形界面
 ├── main.py                  # 命令行入口
 ├── config.json              # 配置文件
@@ -34,11 +25,8 @@
 ---
 
 ## 二、核心模块技术细节
-
 ### 2.1 模型架构 (core/model.py)
-
 #### 2.1.1 自定义CNN模型系列
-
 项目实现了多款针对动漫人脸识别优化的CNN模型：
 
 | 模型名称 | 参数量 | 适用场景 | 特点 |
@@ -50,7 +38,6 @@
 | mobilenet | ~2M | CPU高效 | 深度可分离卷积 |
 
 #### 2.1.2 注意力机制
-
 实现了两种注意力模块：
 
 **SEBlock (Squeeze-and-Excitation)**
@@ -68,52 +55,31 @@
 - ResNet18/34/50
 - EfficientNet-B0/B1/B2
 
-#### 2.1.4 对比学习投影头
-
-```python
-class ProjectionHead(nn.Module):
-    # 用于对比学习，将特征映射到对比空间
-    # 结构: Linear -> BN -> ReLU -> Linear -> BN -> ReLU -> Linear
-    # 输出维度: 128
-```
-
 ### 2.2 训练模块 (core/train.py)
-
 #### 2.2.1 监督对比学习损失 (SupConLoss)
-
 ```python
 class SupConLoss(nn.Module):
     def __init__(self, temperature=0.07, base_temperature=0.07):
         # 温度参数控制分布平滑度
 ```
 
-核心思想：
-- 同一类别的样本在特征空间中应该靠近
-- 不同类别的样本应该远离
-- 使用余弦相似度计算样本间距离
-
 #### 2.2.2 训练优化技术
-
 **混合精度训练 (AMP)**
 - 自动检测CUDA可用性
 - 使用torch.amp.autocast和GradScaler
 - 显著降低显存占用，提升训练速度
-
 **梯度累积**
 - 支持自定义累积步数
 - 等效于增大batch size
 - 适用于显存受限场景
-
 **学习率调度**
 - ReduceLROnPlateau: 验证准确率停滞时降低学习率
 - factor=0.5, patience=5
-
 **梯度裁剪**
 - max_norm=1.0
 - 防止梯度爆炸
 
 #### 2.2.3 训练流程
-
 ```
 1. 设备检测与优化配置
 2. 数据集加载与预处理
@@ -130,9 +96,7 @@ class SupConLoss(nn.Module):
 ```
 
 ### 2.3 数据集加载模块 (core/dataset_loader.py)
-
 #### 2.3.1 数据增强策略
-
 **标准增强**
 ```python
 transforms.Compose([
@@ -146,7 +110,7 @@ transforms.Compose([
 
 **局部区域增强 (LocalRegionTransform)**
 - 45%: 整图 + 标准增强
-- 40%: 随机裁剪 (50%-90%区域)
+- 40%: 随机裁剪 (50%-90%区域，增强对角色特征的识别)
 - 15%: 五裁剪 (左上/右上/左下/右下/中心)
 
 **对比学习增强 (ContrastiveTransform)**
@@ -154,7 +118,6 @@ transforms.Compose([
 - 更强的颜色抖动和几何变换
 
 #### 2.3.2 数据集类
-
 | 类名 | 用途 | 返回值 |
 |-----|------|-------|
 | ContrastiveDataset | 对比学习 | (view1, view2, label) |
@@ -163,7 +126,6 @@ transforms.Compose([
 | LocalRegionDataset | 局部增强 | (image, label) |
 
 #### 2.3.3 数据加载优化
-
 ```python
 DataLoader(
     batch_size=batch_size,
@@ -175,34 +137,11 @@ DataLoader(
 )
 ```
 
-### 2.4 预测模块 (core/predict.py)
-
-#### 2.4.1 模型加载
-
-```python
-def load_model(model_path, device=None):
-    # 自动检测设备
-    # 从checkpoint提取模型配置
-    # 加载类别名称
-    # 返回: model, class_names, device
-```
-
-#### 2.4.2 预测功能
-
-- 单图预测: 返回预测类别、置信度、Top-3结果
-- 批量预测: 支持文件夹批量处理
-- 特征提取: 提取256维特征向量
-
 ---
 
 ## 三、工具模块技术细节
-
-
-
 ### 3.1 硬件检测与优化 (utils/hardware_detector.py)
-
 #### 3.1.1 硬件信息采集
-
 ```python
 @dataclass
 class HardwareInfo:
@@ -219,14 +158,12 @@ class HardwareInfo:
 ```
 
 #### 3.1.2 性能基准测试
-
 - 模型前向传播基准测试
 - 最大批量大小探测 (二分查找)
 - 数据加载器性能测试
 - 最优工作进程数确定
 
 #### 3.1.3 自动配置推荐
-
 ```python
 @dataclass
 class OptimalConfig:
@@ -241,9 +178,7 @@ class OptimalConfig:
 ```
 
 ### 3.2 CPU优化 (utils/cpu_optimizer.py)
-
 三级自适应优化策略：
-
 | 等级 | 优化方式 | 提升幅度 | 条件 |
 |-----|---------|---------|------|
 | 1 | Intel IPEX | 2~4倍 | Intel CPU |
@@ -255,9 +190,7 @@ class OptimalConfig:
 - 调整线程数为物理核心数的75%
 
 ### 3.3 GPU优化 (utils/gpu_optimizer.py)
-
 #### 3.3.1 显存管理
-
 ```python
 def setup_gpu_optimizations():
     torch.backends.cudnn.benchmark = True
@@ -266,10 +199,8 @@ def setup_gpu_optimizations():
     os.environ['PYTORCH_CUDA_ALLOC_CONF'] = 'max_split_size_mb:128'
 ```
 
-#### 3.3.2 自动批量调整
-
+#### 3.3.2 自动批量调整（为保守推荐，实际可以提高）
 根据显存大小推荐配置：
-
 | 显存 | 推荐输入尺寸 | 批量系数 |
 |-----|------------|---------|
 | >=12GB | 224 | 2.0x |
@@ -279,43 +210,31 @@ def setup_gpu_optimizations():
 | <4GB | 128 | 0.5x |
 
 #### 3.3.3 梯度累积计算
-
 ```python
 def get_gradient_accumulation_steps(batch_size, target_effective_batch=32):
     # 自动计算梯度累积步数以达到目标等效批量
 ```
 
 ---
-
 ## 四、图形界面 (gui.py)
-
 ### 4.1 技术栈
-
 - PyQt5: GUI框架
 - matplotlib: 训练曲线可视化
 - 多线程: QThread实现异步训练
 
 ### 4.2 功能模块
-
 1. **训练配置面板**
    - 数据集选择
    - 模型类型选择
    - 超参数配置
    - 硬件检测
-
 2. **训练监控**
    - 实时日志输出
    - 训练曲线绘制
    - 进度显示
    - 时间预估
 
-3. **模型测试**
-   - 单图预测
-   - 批量测试
-   - 结果可视化
-
 ### 4.3 多线程架构
-
 ```python
 class TrainingThread(QThread):
     log_signal = pyqtSignal(str)           # 日志信号
@@ -325,9 +244,7 @@ class TrainingThread(QThread):
 ```
 
 ## 六、训练成果
-
 ### 6.1 最佳模型
-
 **ResNet34**
 - 数据集: 39,270张图片 (86个角色)
 - 验证集：7447张图片
@@ -338,7 +255,6 @@ class TrainingThread(QThread):
   - 混合精度: 启用
   - 对比学习: 启用
   - 局部区域增强: 启用
-
 **ResNet50**
 - 数据集: 39,270张图片
 - 验证集：7447张图片
@@ -352,7 +268,6 @@ class TrainingThread(QThread):
   - 局部区域增强: 启用
 
 ### 6.2 训练日志分析
-
 ```
 [设备] CUDA:0 (NVIDIA GeForce RTX 3050 Laptop GPU)
 [AMP] 混合精度训练已启用
@@ -363,9 +278,7 @@ class TrainingThread(QThread):
 ```
 
 ---
-
 ## 七、依赖环境
-
 ```
 torch>=2.0.0
 torchvision>=0.15.0
@@ -382,8 +295,7 @@ matplotlib>=3.7.0
 
 ---
 
-## 九、技术亮点
-
+## 八、技术亮点
 1. **多模型架构支持**: 从轻量级到大型模型，适应不同场景
 2. **对比学习**: 提升特征表示能力，增强模型泛化性
 3. **局部区域增强**: 使模型能从局部特征识别角色
