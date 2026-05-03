@@ -4,22 +4,22 @@
 ### 项目结构
 ```
 突击莉莉角色识别/
-├── core/                    # 核心模块
-│   ├── model.py            # 模型定义
-│   ├── train.py            # 训练逻辑
-│   ├── dataset_loader.py   # 数据集加载
-│   └── predict.py          # 预测模块
-├── utils/                   # 工具模块
+├── core/
+│   ├── model.py
+│   ├── train.py
+│   ├── dataset_loader.py
+│   └── predict.py
+├── utils/
 │   ├── face_detector.py
-│   ├── hardware_detector.py # 硬件检测与优化
-│   ├── cpu_optimizer.py    # CPU优化
-│   └── gpu_optimizer.py    # GPU优化
-├── models/                  # 模型文件
+│   ├── hardware_detector.py
+│   ├── cpu_optimizer.py
+│   └── gpu_optimizer.py
+├── models/
 │   └── 模型/
-├── gui.py                   # PyQt5图形界面
-├── main.py                  # 命令行入口
-├── config.json              # 配置文件
-└── requirements.txt         # 依赖列表
+├── gui.py
+├── main.py
+├── config.json
+└── requirements.txt
 ```
 
 ---
@@ -134,9 +134,7 @@ DataLoader(
     prefetch_factor=2,         # 预取因子
 )
 ```
-
 ---
-
 ## 三、工具模块技术细节
 ### 3.1 硬件检测与优化 (utils/hardware_detector.py)
 #### 3.1.1 硬件信息采集
@@ -154,13 +152,11 @@ class HardwareInfo:
     gpu_compute_capability: str
     platform_info: str
 ```
-
 #### 3.1.2 性能基准测试
 - 模型前向传播基准测试
 - 最大批量大小探测 (二分查找)
 - 数据加载器性能测试
 - 最优工作进程数确定
-
 #### 3.1.3 自动配置推荐
 ```python
 @dataclass
@@ -174,7 +170,6 @@ class OptimalConfig:
     estimated_time_per_epoch_min: float
     confidence: str
 ```
-
 ### 3.2 CPU优化 (utils/cpu_optimizer.py)
 三级自适应优化策略：
 | 等级 | 优化方式 | 提升幅度 | 条件 |
@@ -186,7 +181,6 @@ class OptimalConfig:
 针对Intel混合架构(12/13/14代)的特殊优化：
 - 自动检测P核/E核配置
 - 调整线程数为物理核心数的75%
-
 ### 3.3 GPU优化 (utils/gpu_optimizer.py)
 #### 3.3.1 显存管理
 ```python
@@ -196,7 +190,6 @@ def setup_gpu_optimizations():
     # 低显存GPU额外配置
     os.environ['PYTORCH_CUDA_ALLOC_CONF'] = 'max_split_size_mb:128'
 ```
-
 #### 3.3.2 自动批量调整（为保守推荐，实际可以提高）
 根据显存大小推荐配置：
 | 显存 | 推荐输入尺寸 | 批量系数 |
@@ -206,22 +199,18 @@ def setup_gpu_optimizations():
 | 6-8GB | 192 | 1.0x |
 | 4-6GB | 160 | 0.75x |
 | <4GB | 128 | 0.5x |
-
 #### 3.3.3 梯度累积计算
 ```python
 def get_gradient_accumulation_steps(batch_size, target_effective_batch=32):
     # 自动计算梯度累积步数以达到目标等效批量
 ```
-
 ---
 ## 四、图形界面 (gui.py)
 <img width="2560" height="1411" alt="image" src="https://github.com/user-attachments/assets/b2f08694-c736-4a40-bc47-cb15a226ccc5" />
-
 ### 4.1 技术栈
 - PyQt5: GUI框架
 - matplotlib: 训练曲线可视化
 - 多线程: QThread实现异步训练
-
 ### 4.2 功能模块
 1. **训练配置面板**
    - 数据集选择
@@ -233,7 +222,6 @@ def get_gradient_accumulation_steps(batch_size, target_effective_batch=32):
    - 训练曲线绘制
    - 进度显示
    - 时间预估
-
 ### 4.3 多线程架构
 ```python
 class TrainingThread(QThread):
@@ -242,7 +230,6 @@ class TrainingThread(QThread):
     finished_signal = pyqtSignal(bool, str)# 完成信号
     plot_data_signal = pyqtSignal(...)     # 绘图数据信号
 ```
-
 ## 六、训练成果
 ### 6.1 最佳模型
 **ResNet34**
@@ -276,7 +263,6 @@ class TrainingThread(QThread):
 第34/50 轮|训练准确率:98.21%|验证准确率:99.99%
 峰值显存: 1.17GB
 ```
-
 ---
 ## 七、依赖环境
 ```
@@ -288,13 +274,10 @@ opencv-python-headless>=4.5.0
 PyQt5>=5.15.0
 matplotlib>=3.7.0
 ```
-
 可选依赖：
 - psutil: 硬件信息采集
 - intel_extension_for_pytorch: Intel CPU加速
-
 ---
-
 ## 八、技术亮点
 1. **多模型架构支持**: 从轻量级到大型模型，适应不同场景
 2. **对比学习**: 提升特征表示能力，增强模型泛化性
@@ -303,5 +286,4 @@ matplotlib>=3.7.0
 6. **动漫人脸检测**: 专门优化的检测算法，支持全身立绘
 7. **完善的GUI**: 实时监控、可视化、一键操作
 
-*文档生成时间: 2026-05-03*
-*项目作者: 突击莉莉角色识别项目组*
+项目作者: 86ashxixixi
