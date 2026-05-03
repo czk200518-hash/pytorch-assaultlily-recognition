@@ -1,0 +1,5 @@
+[20:09:16] [错误] Traceback (most recent call last):
+  File "F:\python_prj\项目\突击莉莉角色识别\gui.py", line 74, in run
+    device = torch.device(device_config)
+             ^^^^^
+UnboundLocalError: cannot access local variable 'torch' where it is not associated with a value
